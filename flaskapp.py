@@ -27,6 +27,7 @@ def imgdata():
             return str(data_to_show)
         elif request.args.get('reset'):
             data_to_show = "default/"
+            return str(data_to_show)
         else:
             return "Error occurred"
     else:
