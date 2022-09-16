@@ -1,0 +1,76 @@
+<html>
+<head>
+</head>
+<body style="background-color: black;">
+
+<div class="main">
+    <img id='id_img' src="/static/default.png">
+    <canvas id='id_canvas' width='1024px' height='1024px'></canvas>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script>
+
+function Update() {
+    var result = $.ajax({
+        url: "/update",
+        type: "GET",
+        context: document.body,
+        dataType: "json",
+        global: false,
+        async: false,
+        success: function(data) {
+            return data;
+        }
+    }).responseText;
+    console.log(result);
+    return result
+}
+
+function Draw(Tab) {
+    var imgWH;
+
+    document.getElementById("id_img").src="/static/"+Tab[0]+".png";
+
+    var img = document.getElementById("id_img");
+    var cnvs = document.getElementById("id_canvas");
+    
+    cnvs.style.position = "absolute";
+    cnvs.style.left = img.offsetLeft + "px";
+    cnvs.style.top = img.offsetTop + "px";
+    
+    var ctx = cnvs.getContext("2d");
+    ctx.reset();
+    for (var i = 1; i < Tab.length; i++) {
+        imgWH = Tab[i].split(":")
+
+        if (imgWH[2] == '2') { //TT
+
+            ctx.beginPath();
+            ctx.arc(imgWH[0], imgWH[1], 4, 0, 2 * Math.PI, false);
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = '#ff9900';
+            ctx.stroke();
+            ctx.fillStyle = '#ff9900';
+            ctx.fill();
+        }
+        if (imgWH[2] == '3') { //CT
+            ctx.beginPath();
+            ctx.arc(imgWH[0], imgWH[1], 4, 0, 2 * Math.PI, false);
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = '#0040ff';
+            ctx.stroke();
+            ctx.fillStyle = '#0040ff';
+            ctx.fill();
+        }
+    }
+    //https://stackoverflow.com/questions/28458818/draw-a-circle-over-a-image-in-html5-and-javascript
+    //console.log(Tab)
+}
+setInterval(function () {
+    Draw(Update().split("/"))
+}, 200);
+
+</script>
+</body>
+</html>
