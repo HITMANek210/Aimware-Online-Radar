@@ -3,7 +3,7 @@
 </head>
 <body style="background-color: black;">
 
-<div class="main">
+<div>
     <img id='id_img' src="/static/default.png">
     <canvas id='id_canvas' width='1024px' height='1024px'></canvas>
 </div>
@@ -15,9 +15,6 @@ function Update() {
     var result = $.ajax({
         url: "/update",
         type: "GET",
-        context: document.body,
-        dataType: "json",
-        global: false,
         async: false,
         success: function(data) {
             return data;
@@ -64,8 +61,6 @@ function Draw(Tab) {
             ctx.fill();
         }
     }
-    //https://stackoverflow.com/questions/28458818/draw-a-circle-over-a-image-in-html5-and-javascript
-    //console.log(Tab)
 }
 setInterval(function () {
     Draw(Update().split("/"))
