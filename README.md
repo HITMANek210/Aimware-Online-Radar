@@ -10,7 +10,7 @@ Web app for rendering an online radar for CS:GO + lua script for Aimware.net
     git clone https://github.com/HITMANek210/Aimware-Online-Radar.git
     cd Aimware-Online-Radar
     pip install -r requirements.txt
-    python3 flaskapp.py
+    gunicorn --bind=0.0.0.0:80 --worker-class eventlet -w 1 flaskapp:app
 
 ### Troubleshooting - ImportError: cannot import name 'ALREADY_HANDLED' from 'eventlet.wsgi'
 
