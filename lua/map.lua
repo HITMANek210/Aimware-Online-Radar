@@ -1,8 +1,37 @@
-local url = "http://";
-local password = "password"; --change it!
+local function GetPosX(pos_x, img_w, scale)
+    return tonumber(math.ceil((math.abs(pos_x + img_w))/scale));
+end
 
-local Data = {};
-local map_name = nil;
+local function GetPosY(pos_y, img_h, scale)
+    return tonumber(math.ceil((math.abs(pos_y + img_h))/scale));
+end
+
+local function ToBase64(data)
+    local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    return ((data:gsub('.', function(x)
+        local r,b='',x:byte()
+        for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
+        return r;
+    end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+        if (#x < 6) then return '' end
+        local c=0
+        for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
+        return b:sub(c+1,c+1)
+    end)..({ '', '==', '=' })[#data%3+1])
+end
+
+--###########################################################
+
+local menuRef = gui.Reference("Misc");
+local menuTab = gui.Tab(menuRef, "Online Radar", "Online Radar");
+local menuMainBox = gui.Groupbox(menuTab, "Online Radar", 16, 16, 200, 0);
+local menuDelay = gui.Slider(menuMainBox, "online_radar", "Radar Delay", 1, 0.01, 10, 0.01);
+
+local url = "http://16.171.21.81";
+local password = "4422";
+
+local dataMain = nil;
+local mapName = nil;
 local maps = {
     ["cs_agency"]   = {-2947,2492,5.0},
     ["cs_office"]   = {-1838,1858,4.1},
@@ -23,80 +52,75 @@ local maps = {
     ["de_lake"]     = {1200,-700,5.2}
 }
 
-local function map()
-    Data = {};
-    map_name = engine.GetMapName();
+local players, player, playerXPos, playerYPos, weapons, weapon, bombXPos, bombYPos, planted, bombPlanted;
 
-    local players = entities.FindByClass("CCSPlayer");
-
-    for i = 1, #players do
-        local player = players[i];
-
-        local enemy_x = player:GetAbsOrigin().x;
-        local enemy_y = player:GetAbsOrigin().y;
-        local x_str = tostring(GetPosX(enemy_x, maps[map_name][1]*-1, maps[map_name][3]));
-        local y_str = tostring(GetPosY(enemy_y, maps[map_name][2]*-1, maps[map_name][3]));
-
-        if player:IsAlive() then --and player:IsDormant() == false then
-            local info = x_str..":"..y_str..":"..player:GetTeamNumber();
-            table.insert(Data, info);
-        end
-    end
-end
-callbacks.Register("Draw", map);
-
-local data_to_send = nil;
-local function get_pos()
+local function main()
     if entities.GetLocalPlayer() then
-        local data_all;
-        for i = 1, #Data do
-            data_all = tostring(data_all).."/"..Data[i];
+        mapName = engine.GetMapName();
+
+        players = entities.FindByClass("CCSPlayer");
+        weapons = entities.FindByClass("CBaseCombatWeapon");
+        bombPlanted = entities.FindByClass("CPlantedC4")[1];
+
+        dataMain = '{"local_player": true,"map": "'..mapName..'", "players":[';
+
+        --players
+        for i = 1, #players do
+            player = players[i];
+            playerXPos = tostring(GetPosX(player:GetAbsOrigin().x, maps[mapName][1]*-1, maps[mapName][3]));
+            playerYPos = tostring(GetPosY(player:GetAbsOrigin().y, maps[mapName][2]*-1, maps[mapName][3]));
+
+            if player:IsAlive() and player:IsDormant() ~= true then
+                dataMain = dataMain .. '{"player_x": "'.. playerXPos .. '", "player_y": "' .. playerYPos ..
+                '", "team_num": "' .. player:GetTeamNumber() ..'", "player_name": "'.. player:GetName() ..
+                '", "player_health": "'.. player:GetHealth() ..'"},';
+            elseif player:IsAlive() == false then
+                dataMain = dataMain .. '{"player_dead": "true"},';
+            end
         end
-        if data_all ~= nil then
-            data_to_send = map_name..data_all:sub(4);
-            --draw.Text(500, 500, data_to_send);
+        dataMain = dataMain:sub(1, -2) .. ']';
+
+        --bomb dropped
+        bombXPos = "false";
+        bombYPos = "false";
+        planted = "false";
+        for i = 1, #weapons do
+            weapon = weapons[i];
+            if weapon and weapon:GetName() == "weapon_c4" and weapon:GetProp("m_hOwner") == -1 then
+                bombXPos = '"'..tostring(GetPosX(weapon:GetAbsOrigin().x, maps[mapName][1]*-1, maps[mapName][3]))..'"';
+                bombYPos = '"'..tostring(GetPosY(weapon:GetAbsOrigin().y, maps[mapName][2]*-1, maps[mapName][3]))..'"';
+                planted = "false";
+            end
         end
+
+        --bomb planted
+        if bombPlanted then
+            bombXPos = '"'..tostring(GetPosX(bombPlanted:GetAbsOrigin().x, maps[mapName][1]*-1, maps[mapName][3]))..'"';
+            bombYPos = '"'..tostring(GetPosY(bombPlanted:GetAbsOrigin().y, maps[mapName][2]*-1, maps[mapName][3]))..'"';
+            planted = "true";
+        end
+        dataMain = dataMain ..',"bomb": {"bomb_x": '..bombXPos..', "bomb_y": '..bombYPos..', "planted":'..planted..'}';
+        dataMain = string.gsub(dataMain, "%s+", "")..'}'; --removing spaces from string
     end
 end
-callbacks.Register("Draw", get_pos);
+callbacks.Register("Draw", main);
 
-local curtime = globals.CurTime();
+--send data
+local time = common.Time();
 local function send_data()
-    if entities.GetLocalPlayer() and data_to_send ~= nil then
-        local delay = 0.2;
-        if globals.CurTime() > curtime then
-            http.Get(url.."/imgdata?data="..ToBase64(data_to_send).."&pass="..password, function()end);
-            curtime = globals.CurTime() + delay;
+    if common.Time() > time then
+        --print(dataMain);
+        if entities.GetLocalPlayer() then
+            http.Get(url.."/imgdata?data="..ToBase64(dataMain).."&pass="..password, function()end);
+        else
+            http.Get(url.."/imgdata?data="..ToBase64('{"local_player": false}').."&pass="..password, function()end);
         end
+        time = common.Time() + menuDelay:GetValue();
     end
 end
 callbacks.Register("Draw", send_data);
 
-local function reset_data()
-    http.Get(url.."/imgdata?reset=1&pass="..password, function()end);
-end
-callbacks.Register("Unload", reset_data);
-
---##########################################
-
-function GetPosX(pos_x, img_w, scale)
-    return tonumber(math.ceil((math.abs(pos_x + img_w))/scale));
-end
-
-function GetPosY(pos_y, img_h, scale)
-    return tonumber(math.ceil((math.abs(pos_y + img_h))/scale));
-end
-
-function ToBase64(data)
-    local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-    return ((data:gsub('.', function(x)
-        local r,b='',x:byte()
-        for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
-        return r;
-    end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
-        if (#x < 6) then return '' end
-        local c=0
-        for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
-        return b:sub(c+1,c+1)
-    end)..({ '', '==', '=' })[#data%3+1])
-end
+--send data on Unload
+callbacks.Register("Unload", function()
+    http.Get(url.."/imgdata?data="..ToBase64('{"local_player": false}').."&pass="..password, function()end);
+end);

@@ -1,35 +1,29 @@
-from flask import Flask, request, render_template, redirect, url_for
-from waitress import serve
+from flask import Flask, request, render_template
+from flask_socketio import SocketIO, emit;
+from json import loads
 import base64
 
-password = "password" #change the password
-
 app = Flask(__name__)
-data_to_show = "default"
+socketio = SocketIO(app)
+app.config['SECRET_KEY'] = '!!secret@##1'
+password = "4422"
+data_to_show = ""
+
+def sendMsg(data):
+    emit("imgdata", data, json=True, broadcast=True, namespace="")
 
 @app.route('/')
 def index():
     return render_template("index.html")
 
-@app.route('/update')
-def update():
-    return data_to_show
-
 @app.route('/imgdata')
 def imgdata():
-    global data_to_show
-    if request.args.get('pass') == password:
-        if request.args.get('data'):
-            data_to_show = base64.b64decode(request.args.get('data'))
-            return str(data_to_show)
-        elif request.args.get('reset'):
-            data_to_show = "default/"
-            return str(data_to_show)
-        else:
-            return "Error occurred"
+    if request.args.get('data') and request.args.get('pass') and request.args.get('pass') == password :
+        data_to_show = base64.b64decode(request.args.get('data')).decode("utf-8")
+        sendMsg(loads(data_to_show))
+        return "Sent!"
     else:
-        return "Incorrect password"
+        return "Error"
 
 if __name__ == "__main__":
-    #serve(app, host="0.0.0.0", port=80)
-    app.run(host="0.0.0.0", port=80) #<- use this to get the development server
+    socketio.run(app, host="0.0.0.0", port=80)
