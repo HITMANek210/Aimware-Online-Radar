@@ -38,7 +38,7 @@ local function map()
         local y_str = tostring(GetPosY(enemy_y, maps[map_name][2]*-1, maps[map_name][3]));
 
         if player:IsAlive() then --and player:IsDormant() == false then
-            local info = x_str..":"..y_str..":"..player:GetTeamNumber();
+            local info = x_str..":"..y_str..":"..player:GetTeamNumber()..":"..player:GetName();
             table.insert(Data, info);
         end
     end

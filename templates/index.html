@@ -50,6 +50,10 @@ function Draw(Tab) {
             ctx.stroke();
             ctx.fillStyle = '#ff9900';
             ctx.fill();
+            // name
+            ctx.font = "14px 'Verdana'";
+            ctx.textAlign = "center";
+            ctx.fillText(imgWH[3],imgWH[0],imgWH[1]-12);
         }
         if (imgWH[2] == '3') { //CT
             ctx.beginPath();
@@ -59,6 +63,10 @@ function Draw(Tab) {
             ctx.stroke();
             ctx.fillStyle = '#0040ff';
             ctx.fill();
+            // name
+            ctx.font = "14px 'Verdana'";
+            ctx.textAlign = "center";
+            ctx.fillText(imgWH[3],imgWH[0],imgWH[1]-12);
         }
     }
 }
