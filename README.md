@@ -11,3 +11,12 @@ Web app for rendering an online radar for CS:GO + lua script for Aimware.net
     cd Aimware-Online-Radar
     pip install -r requirements.txt
     python3 flaskapp.py
+
+### Troubleshooting - ImportError: cannot import name 'ALREADY_HANDLED' from 'eventlet.wsgi'
+
+To fix this error uninstall gunicorn and install it by running this command:
+
+    pip install https://github.com/benoitc/gunicorn/archive/refs/heads/master.zip#egg=gunicorn==20.1.0
+    
+More about this issue here:
+https://github.com/benoitc/gunicorn/pull/2581#issuecomment-994198667
