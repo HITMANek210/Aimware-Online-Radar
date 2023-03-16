@@ -5,8 +5,8 @@ import base64
 
 app = Flask(__name__)
 socketio = SocketIO(app)
-app.config['SECRET_KEY'] = '!!secret@##1'
-password = "4422"
+app.config['SECRET_KEY'] = '!!secret@##1' #change this!
+password = "4422" #change this!
 data_to_show = ""
 
 def sendMsg(data):
