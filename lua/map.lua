@@ -27,8 +27,8 @@ local menuTab = gui.Tab(menuRef, "Online Radar", "Online Radar");
 local menuMainBox = gui.Groupbox(menuTab, "Online Radar", 16, 16, 200, 0);
 local menuDelay = gui.Slider(menuMainBox, "online_radar", "Radar Delay", 1, 0.01, 10, 0.01);
 
-local url = "http://16.170.251.81";
-local password = "4422";
+local url = "http://";
+local password = "4422"; --change this!
 
 local dataMain = nil;
 local mapName = nil;
