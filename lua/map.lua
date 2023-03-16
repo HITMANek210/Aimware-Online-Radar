@@ -61,7 +61,7 @@ local function vector_transform(src, ang, d)
     return Vector3(newPos.x, newPos.y, newPos.z);
 end
 
-local players, player, playerXPos, playerYPos, weapons, weapon, bombXPos, bombYPos, planted, bombPlanted, headPos, eyeAngles, vecForward, trace, traceX, traceY;
+local lPlayer, players, player, playerXPos, playerYPos, weapons, weapon, bombXPos, bombYPos, planted, bombPlanted, headPos, eyeAngles, vecForward, trace, traceX, traceY;
 
 local function main()
     if entities.GetLocalPlayer() then
@@ -84,11 +84,18 @@ local function main()
                 '", "team_num": "' .. player:GetTeamNumber() ..'", "player_name": "'.. player:GetName() ..
                 '", "player_health": "'.. player:GetHealth() ..'",';
 
-                headPos = player:GetAbsOrigin() + (player:GetHitboxPosition(0) - player:GetAbsOrigin());
-                eyeAngles = player:GetPropVector("m_angEyeAngles");
-                eyeAngles.z = 0;
-                vecForward = vector_transform(headPos, eyeAngles, 9999);
-                trace = engine.TraceLine(headPos, vecForward, 0x400B);
+                if player:GetIndex() == entities.GetLocalPlayer():GetIndex() then
+                    lPlayer = entities.GetLocalPlayer();
+                    headPos = lPlayer:GetAbsOrigin() + (lPlayer:GetHitboxPosition(0) - lPlayer:GetAbsOrigin());
+                    vecForward = vector_transform(headPos, engine.GetViewAngles(), 9999);
+                    trace = engine.TraceLine(headPos, vecForward, 0x400B);
+                else
+                    headPos = player:GetAbsOrigin() + (player:GetHitboxPosition(0) - player:GetAbsOrigin());
+                    eyeAngles = player:GetPropVector("m_angEyeAngles");
+                    eyeAngles.z = 0;
+                    vecForward = vector_transform(headPos, eyeAngles, 9999);
+                    trace = engine.TraceLine(headPos, vecForward, 0x400B);
+                end
 
                 if trace ~= nil then
                     traceX = tostring(GetPosX(trace.endpos.x, maps[mapName][1]*-1, maps[mapName][3]));
