@@ -42,35 +42,54 @@ function Draw(imgData) {
                 teamNum = imgData['players'][i]['team_num'];
                 playerName = imgData['players'][i]['player_name'];
                 playerHealth = imgData['players'][i]['player_health'];
+                playerTraceX = imgData['players'][i]['traceX'];
+                playerTraceY = imgData['players'][i]['traceY'];
                 
                 if (teamNum == '2') { //TT
+                    ctx.beginPath();
+                    ctx.moveTo(playerX, playerY);
+                    ctx.lineTo(playerTraceX, playerTraceY);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.stroke();
+                    ctx.closePath();
+
                     ctx.beginPath();
                     ctx.arc(playerX, playerY, 4, 0, 2 * Math.PI);
                     ctx.lineWidth = 10;
                     ctx.strokeStyle = '#ff9900';
-                    ctx.stroke();
                     ctx.fillStyle = '#ff9900';
                     ctx.fill();
-                    ctx.closePath();
                     ctx.textAlign = 'center';
                     ctx.fillText(playerName, parseInt(playerX) , parseInt(playerY)-14);
                     ctx.fillText("HP: " + playerHealth, parseInt(playerX) , parseInt(playerY)+20);
+                    ctx.stroke();
+                    ctx.closePath();
                 }
                 if (teamNum == '3') { //CT
+                    ctx.beginPath();
+                    ctx.moveTo(playerX, playerY);
+                    ctx.lineTo(playerTraceX, playerTraceY);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.stroke();
+                    ctx.closePath();
+
                     ctx.beginPath();
                     ctx.arc(playerX, playerY, 4, 0, 2 * Math.PI);
                     ctx.lineWidth = 10;
                     ctx.strokeStyle = '#00bfff';
-                    ctx.stroke();
                     ctx.fillStyle = '#00bfff';
                     ctx.fill();
-                    ctx.closePath();
                     ctx.textAlign = 'center';
                     ctx.fillText(playerName, parseInt(playerX) , parseInt(playerY)-14);
                     ctx.fillText("HP: " + playerHealth, parseInt(playerX) , parseInt(playerY)+20);
+                    ctx.stroke();
+                    ctx.closePath();
                 }
             }
         }
+
         if (imgData['bomb']['bomb_x'] != false) {
             bombX = imgData['bomb']['bomb_x'];
             bombY = imgData['bomb']['bomb_y'];
@@ -84,7 +103,6 @@ function Draw(imgData) {
                 ctx.fillStyle = '#03fc0f';
                 ctx.fill();
                 ctx.fillRect(bombX, bombY, 10, 10);
-                //ctx.arc(bombX, bombY, 4, 0, 2 * Math.PI);
                 ctx.closePath();
                 ctx.fillText("Bomb", bombX, bombY);
             }
@@ -96,7 +114,6 @@ function Draw(imgData) {
                 ctx.fillStyle = '#b80000';
                 ctx.fill();
                 ctx.fillRect(bombX, bombY, 10, 10);
-                //ctx.arc(bombX, bombY, 4, 0, 2 * Math.PI);
                 ctx.closePath();
                 ctx.fillText("Bomb", bombX, bombY);
             }

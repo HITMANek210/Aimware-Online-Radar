@@ -28,7 +28,7 @@ local menuMainBox = gui.Groupbox(menuTab, "Online Radar", 16, 16, 200, 0);
 local menuDelay = gui.Slider(menuMainBox, "online_radar", "Radar Delay", 1, 0.01, 10, 0.01);
 
 local url = "http://";
-local password = "4422";
+local password = "4422"; --change this!
 
 local dataMain = nil;
 local mapName = nil;
@@ -52,7 +52,16 @@ local maps = {
     ["de_lake"]     = {1200,-700,5.2}
 }
 
-local players, player, playerXPos, playerYPos, weapons, weapon, bombXPos, bombYPos, planted, bombPlanted;
+local function vector_transform(src, ang, d)
+    local newPos = {x =nil; y =nil; z =nil;};
+
+    newPos.x = src.x + (math.cos(math.rad(ang.y)) * d);
+    newPos.y = src.y + (math.sin(math.rad(ang.y)) * d);
+    newPos.z = src.z + -(math.tan(math.rad(ang.x)) * d);
+    return Vector3(newPos.x, newPos.y, newPos.z);
+end
+
+local players, player, playerXPos, playerYPos, weapons, weapon, bombXPos, bombYPos, planted, bombPlanted, headPos, eyeAngles, vecForward, trace, traceX, traceY;
 
 local function main()
     if entities.GetLocalPlayer() then
@@ -73,7 +82,21 @@ local function main()
             if player:IsAlive() and player:IsDormant() ~= true then
                 dataMain = dataMain .. '{"player_x": "'.. playerXPos .. '", "player_y": "' .. playerYPos ..
                 '", "team_num": "' .. player:GetTeamNumber() ..'", "player_name": "'.. player:GetName() ..
-                '", "player_health": "'.. player:GetHealth() ..'"},';
+                '", "player_health": "'.. player:GetHealth() ..'",';
+
+                headPos = player:GetAbsOrigin() + (player:GetHitboxPosition(0) - player:GetAbsOrigin());
+                eyeAngles = player:GetPropVector("m_angEyeAngles");
+                eyeAngles.z = 0;
+                vecForward = vector_transform(headPos, eyeAngles, 9999);
+                trace = engine.TraceLine(headPos, vecForward, 0x400B);
+
+                if trace ~= nil then
+                    traceX = tostring(GetPosX(trace.endpos.x, maps[mapName][1]*-1, maps[mapName][3]));
+                    traceY = tostring(GetPosY(trace.endpos.y, maps[mapName][2]*-1, maps[mapName][3]));
+                    dataMain = dataMain .. '"traceX": "'.. traceX ..'", "traceY": "'.. traceY ..'"},';
+                else
+                    dataMain = dataMain .. '"traceX": "false", "traceY": "false"},';
+                end
             elseif player:IsAlive() == false then
                 dataMain = dataMain .. '{"player_dead": "true"},';
             end
